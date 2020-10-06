@@ -1,0 +1,13 @@
+---
+title: "p8105_hw3_hq2182"
+author: "Hanfei Qi"
+date: "10/6/2020"
+output: git_document
+---
+
+Problem 1
+
+```{r}
+
+```
+
