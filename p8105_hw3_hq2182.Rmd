@@ -2,12 +2,71 @@
 title: "p8105_hw3_hq2182"
 author: "Hanfei Qi"
 date: "10/6/2020"
-output: git_document
+output: html_document
 ---
 
-Problem 1
+# Problem 1
+
+```{r, message = FALSE, warning = FALSE}
+library(p8105.datasets)
+library(tidyverse)
+data("instacart")
+```
+
+This dataset contains `r nrow(instacart)` rows and `r ncol(instacart)` columns.
+
+Observations are the level of items in orders by user. There are user / order variables -- user ID, order ID, order day, and order hour. THere are also item variables -- name, aisle, department, and some numeric codes. -----------(need to be revise)-------------
+
+How many aisles, and which are mroe items from?
 
 ```{r}
+instacart %>%
+  count(aisle) %>%
+  arrange(desc(n))
+```
 
+Make a plot
+
+```{r}
+instacart %>%
+  count(aisle) %>% 
+  filter(n > 10000) %>% 
+  mutate(
+    aisle = factor(aisle),
+```
+
+
+```{r}
+aisle = fct_reorder(aisle, n)
+  ) %>% 
+  ggplot(aes(x = aisle, y = n)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+Make a table
+
+```{r}
+instacart %>% 
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>%
+  group_by(aisle) %>% 
+  count(product_name) %>% 
+  mutate(rank = min_rank(desc(n))) %>% 
+  filter(rank < 4) %>% 
+  arrange(aisle, rank) %>% 
+  knitr::kable()
+```
+
+Apples vs. ice cream
+
+```{r}
+instacart %>% 
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
+  group_by(product_name, order_dow) %>% 
+  summarize(mean_hour = mean(order_hour_of_day)) %>% 
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_hour
+  )
 ```
 
