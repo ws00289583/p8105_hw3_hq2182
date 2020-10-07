@@ -5,19 +5,41 @@ date: "10/6/2020"
 output: html_document
 ---
 
-# Problem 1
-
-```{r, message = FALSE, warning = FALSE}
-library(p8105.datasets)
+Load libraries and do some figure setting.
+```{r setup, include=FALSE}
 library(tidyverse)
+library(p8105.datasets)
+
+knitr::opts_chunk$set(
+	fig.width = 6, 
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+```
+
+# Problem 1
+Input the data set
+```{r, message = FALSE, warning = FALSE}
 data("instacart")
 ```
 
-This dataset contains `r nrow(instacart)` rows and `r ncol(instacart)` columns.
+Description:
 
-Observations are the level of items in orders by user. There are user / order variables -- user ID, order ID, order day, and order hour. THere are also item variables -- name, aisle, department, and some numeric codes. -----------(need to be revise)-------------
+This data set contains `r nrow(instacart)` rows and `r ncol(instacart)` columns.
+Observations are the level of items in orders by user. There are user / order variables -- user ID, order ID, order day, and order hour. There are also item variables -- name, aisle, department, and some numeric codes such as add to cart order, reordered, order number, and aisle id.
 
-How many aisles, and which are mroe items from?
+
+* How many aisles, and which are more items from?
 
 ```{r}
 instacart %>%
@@ -25,7 +47,10 @@ instacart %>%
   arrange(desc(n))
 ```
 
-Make a plot
+Comment: There are 134 aisles, the top three aisles with more items are "fresh vegetables", "fresh fruits", and "packaged vegetables fruits". It looks like there are many types of vegetables and fruits.
+  
+
+* Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
 
 ```{r}
 instacart %>%
@@ -33,18 +58,21 @@ instacart %>%
   filter(n > 10000) %>% 
   mutate(
     aisle = factor(aisle),
-```
-
-
-```{r}
-aisle = fct_reorder(aisle, n)
+    aisle = fct_reorder(aisle, n)
   ) %>% 
   ggplot(aes(x = aisle, y = n)) +
   geom_point() +
+  labs(
+    title = "Number of Items in Each Aisle",
+    x = "Name of Aisle",
+    y = "Number of Items") +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
-Make a table
+Comment: As I expected, vegetables, fruits, and yogurt have the most items, and the remaining aisles (#items > 10 thousands) have similar numbers of items.
+  
+
+* Make a tableMake a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”.
 
 ```{r}
 instacart %>% 
@@ -57,16 +85,26 @@ instacart %>%
   knitr::kable()
 ```
 
-Apples vs. ice cream
+Comment: It looks like baking requires lots of sugar. Dogs prefer chicken & rice. People tend to purchase organic fruits.
+  
 
-```{r}
+* Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week
+
+```{r, warning = FALSE, message = FALSE}
 instacart %>% 
-  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
-  group_by(product_name, order_dow) %>% 
-  summarize(mean_hour = mean(order_hour_of_day)) %>% 
-  pivot_wider(
-    names_from = order_dow,
-    values_from = mean_hour
-  )
+	filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
+	group_by(product_name, order_dow) %>% 
+	summarize(mean_hour = mean(order_hour_of_day)) %>% 
+  mutate(
+    order_dow = recode(
+      order_dow,
+      `0` = "Sun", `1` = "Mon", `2` = "Tues", `3` = "Wed", `4` = "Thur", `5` = "Fri", `6` = "Sat"
+    )
+  ) %>% 
+	pivot_wider(
+		names_from = order_dow,
+		values_from = mean_hour
+	)
 ```
 
+# Problem 2
