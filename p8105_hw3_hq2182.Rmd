@@ -107,4 +107,119 @@ instacart %>%
 	)
 ```
 
+Comment: Most of time the coffee ice cream is sold in the afternoon, maybe it's because the temperature is warmer in the afternoon. Pink lady apples is sold in the noon, maybe people buy it for lunch.  
+
 # Problem 2
+
+* Load, tidy, and otherwise wrangle the data.
+```{r, message = FALSE}
+accel_df = 
+  read_csv(
+    file = "./accel_data.csv",
+    col_names = TRUE) %>%
+  janitor::clean_names() %>%
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "activity",
+    values_to = "activity_number"
+  ) %>% 
+  mutate(
+    weekday = case_when(
+      day == "Monday" ~ "yes",
+      day == "Tuesday" ~ "yes",
+      day == "Wednesday" ~ "yes",
+      day == "Thurday" ~ "yes",
+      day == "Friday" ~ "yes",
+      TRUE            ~ "no"),
+    weekend = case_when(
+      day == "Saturday" ~ "yes",
+      day == "Sunday" ~ "yes",
+      TRUE           ~ "no"
+    ))
+```
+
+Description: This data set contains `r nrow(accel_df)` rows and `r ncol(accel_df)` columns.  
+
+* The following are variables in this data set:
+  * week: The number of week since the experiment started
+  * day_id: Unique id of certain day, the number is number of day after starting experiment
+  * day: Name of weekday
+  * activity_*: Names of activities, but do not know what is the specific activity
+  * activity_number: Counts of each activity
+  * weekday: "yes" if the date is weekday, "no" if the date is weekend
+  * weekend: "yes" if the date is weekend, "no" if the date is weekday 
+
+
+* Add variable of total activity for each day, then make a table
+
+```{r, message = FALSE}
+accel_df %>% 
+  group_by(day_id, day) %>% 
+  summarize(
+    sum_act = sum(activity_number)
+  ) %>% 
+  arrange(
+    desc(sum_act)
+  ) %>% 
+  knitr::kable()
+```
+
+Comment:
+
+
+* Make a plot shows 24-hour activity time courses for each day
+* Colors indicate day of the week
+
+```{r}
+accel_df %>% 
+  group_by(day_id) %>% 
+  ggplot(aes(x = activity, y = activity_number)) +
+    geom_point(aes(color = day), alpha = .5) +
+  labs(
+    title = "24-hour activity time courses for each day",
+    x = "Time Line Starting at Midnight",
+    y = "Activity Numbers") +
+    theme(axis.text.x = element_blank())
+```
+
+Comment:
+
+
+# Problem 3
+
+```{r}
+
+```
+
+Description: 
+
+
+* Separate variables for year, month, and day
+* Ensure units of temperature, precipitation, and snowfall
+* Observe common values for snowfall
+
+```{r}
+
+```
+
+Comment:
+
+
+* Make a two-panel plot showing the average max temperature in January and in July in each station across years.
+
+```{r}
+
+```
+
+Comment:
+
+
+* Make a two-panel plot: tmax vs tmin for the full dataset.
+* Make a plot: the distribution of snowfall values greater than 0 and less than 100 separately by year.
+
+```{r}
+
+```
+
+Comment:
+
