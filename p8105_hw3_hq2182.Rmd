@@ -2,29 +2,13 @@
 title: "p8105_hw3_hq2182"
 author: "Hanfei Qi"
 date: "10/6/2020"
-output: html_document
+output: github_document
 ---
 
 Load libraries and do some figure setting.
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(p8105.datasets)
-
-knitr::opts_chunk$set(
-	fig.width = 6, 
-  fig.asp = .6,
-  out.width = "90%"
-)
-
-theme_set(theme_minimal() + theme(legend.position = "bottom"))
-
-options(
-  ggplot2.continuous.colour = "viridis",
-  ggplot2.continuous.fill = "viridis"
-)
-
-scale_colour_discrete = scale_colour_viridis_d
-scale_fill_discrete = scale_fill_viridis_d
 ```
 
 # Problem 1
@@ -124,6 +108,8 @@ accel_df =
     values_to = "activity_number"
   ) %>% 
   mutate(
+    day_id = as.factor(day_id),
+    week = as.factor(week),
     weekday = case_when(
       day == "Monday" ~ "yes",
       day == "Tuesday" ~ "yes",
@@ -187,11 +173,15 @@ Comment:
 
 # Problem 3
 
+Input and observe the data
 ```{r}
-
+library(patchwork)
+library(ggridges)
+data("ny_noaa")
+summary(ny_noaa)
 ```
 
-Description: 
+Description: This data contains 7 variables: weather station id, date of observation, precipitation (tenth of mm), snowfall (mm), snow depth (mm), max/min temperature (tenths of degree C). There are `r nrow(ny_noaa)`` rows in the data. The amount of NA values in max/min temperature may make troubles when we want to analyze temp vs. precipitation / snowfall.
 
 
 * Separate variables for year, month, and day
@@ -199,7 +189,22 @@ Description:
 * Observe common values for snowfall
 
 ```{r}
+sep_date = ny_noaa %>% 
+  separate(col = date, 
+           into = c("year", "month", "day")) %>% 
+  mutate(
+   prcp = prcp / 10,
+   tmax_num = as.numeric(tmax) / 10,
+   tmin_num = as.numeric(tmin) / 10
+  ) 
 
+summary(sep_date$snow) 
+
+getmode = function(v) {
+   uniqv = unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+getmode(sep_date$snow)
 ```
 
 Comment:
@@ -208,17 +213,71 @@ Comment:
 * Make a two-panel plot showing the average max temperature in January and in July in each station across years.
 
 ```{r}
+jun_df = sep_date %>% 
+  group_by(id, month, year) %>% 
+  summarize(mean_tmax = mean(tmax_num)) %>% 
+  filter(month == "06") %>% 
+  drop_na()
 
+jul_df = sep_date %>% 
+  group_by(id, month, year) %>% 
+  summarize(mean_tmax = mean(tmax_num)) %>% 
+  filter(month == "07") %>% 
+  drop_na()
+
+jun_p = 
+  jun_df %>% 
+  ggplot(aes(x = year, y = mean_tmax, group = id)) +
+  geom_point(alpha = .5) +
+  geom_path() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+jul_p = 
+  jul_df %>% 
+  ggplot(aes(x = year, y = mean_tmax, group = id)) +
+  geom_point(alpha = .5) +
+  geom_path() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+jun_p / jul_p
 ```
 
-Comment:
+Comment: 
 
 
 * Make a two-panel plot: tmax vs tmin for the full dataset.
 * Make a plot: the distribution of snowfall values greater than 0 and less than 100 separately by year.
 
 ```{r}
+tmax_tmin_p = 
+  sep_date %>% 
+  drop_na() %>% 
+  ggplot(aes(x = tmin_num, y = tmax_num)) +
+  geom_hex() +
+  labs(
+    title = "tmax vs. tmin for the full dataset",
+    x = "Minimum Temperature",
+    y = "Maximum Temperature")
+  
+```
 
+```{r, warning = FALSE}
+distr_snow_p = 
+  sep_date %>% 
+  filter(snow > 0 &
+           snow < 100) %>% 
+  drop_na(snow) %>% 
+  ggplot(
+    aes(x = year, y = snow)
+    ) +
+  geom_violin(aes(fill = year), alpha = .5) +
+  stat_summary(fun = "median", color = "black") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  theme(legend.position = "bottom",
+        legend.text = element_text(size = 7),
+        legend.key.size = unit(0.5, "lines"))
+
+tmax_tmin_p / distr_snow_p
 ```
 
 Comment:
